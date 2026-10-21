@@ -134,7 +134,7 @@ if(mode==='realtime')out+='<div class="otr-banner otr-hot">● LIVE <span>인기
 if(!selected.length)out+='<div style="padding:25px;color:#777">검색 결과가 없습니다.</div>';
 selected.forEach((n,rank)=>{
 const title=n.cat==='realtime'?(rank+1)+'위　'+n.title:n.title;
-out+='<button class="otr-web-card '+(n.cat==='realtime'?'otr-live-card':'')+'" onclick="openWebArticle('+n.i+')"><div class="otr-web-card-copy"><small>'+ (n.cat==='community'?'익명 게시판':n.cat==='realtime'?'실시간 검색':n.source) +'</small><strong>'+title+'</strong><span>'+n.time+' · 댓글 '+n.comments.length+'</span></div><img alt="가상 기사 삽화" src="'+webIllustration(n)+'"></button>';
+out+='<button class="otr-web-card '+(n.cat==='realtime'?'otr-live-card':'')+'" onclick="openWebArticle('+n.i+')"><div class="otr-web-card-copy"><small>'+ (n.cat==='community'?'익명 게시판':n.cat==='realtime'?'실시간 검색':n.source) +'</small><strong>'+title+'</strong><span>'+n.time+' · 댓글 '+n.comments.length+'</span></div></button>';
 });
 root.innerHTML=out;
 const sc=document.getElementById('webScroll');if(sc)sc.scrollTop=0;
@@ -143,7 +143,7 @@ function openWebArticle(i){
 const n=webNews[i];if(!n)return;
 const cat=n.cat==='community'?'커뮤니티':n.cat==='realtime'?'실시간':'연예 뉴스';
 const comments=n.comments.map((c,j)=>'<div class="otr-comment"><b>'+(n.cat==='community'?'ㅇㅇ'+(j+1):['밤하늘','도토리','한줄평','초록별'][j])+'</b><p>'+c+'</p><small>공감 '+(8+j*7)+'　·　답글</small></div>').join('');
-document.getElementById('articleBody').innerHTML='<div class="otr-article"><small>'+cat+' · '+n.source+'</small><h2>'+n.title+'</h2><p class="otr-article-date">2026.10.21 '+n.time+' · OFF THE RECORD 가상 콘텐츠</p><img class="otr-article-visual" src="'+webIllustration(n)+'"><p class="otr-article-body">'+n.body+'</p><div class="otr-comment-title">댓글 '+n.comments.length+'</div>'+comments+'</div>';
+document.getElementById('articleBody').innerHTML='<div class="otr-article"><small>'+cat+' · '+n.source+'</small><h2>'+n.title+'</h2><p class="otr-article-date">2026.10.21 '+n.time+' · OFF THE RECORD 가상 콘텐츠</p><p class="otr-article-body">'+n.body+'</p><div class="otr-comment-title">댓글 '+n.comments.length+'</div>'+comments+'</div>';
 const bar=document.querySelector('#webArticle .bar strong');if(bar)bar.textContent=cat;
 openApp('webArticle');document.getElementById('articleBody').scrollTop=0;
 }
