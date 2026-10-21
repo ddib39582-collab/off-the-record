@@ -219,4 +219,30 @@ for(const m of r.msg){
 document.getElementById('otrOtherMessages').innerHTML=out;
 openApp('otrOtherChat');const sc=document.getElementById('otrOtherScroll');if(sc)sc.scrollTop=sc.scrollHeight;
 }
+</script><script id="otr-kakao-read-status">
+(function(){
+const KEY='otr_kakao_read_rooms_v1';
+const initial={manager:9,agency:6,director:3,friend1:5,friend2:2,colleague:4,stylist:2,staff:3,friend3:1};
+let read={};try{read=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
+function refresh(){
+ document.querySelectorAll('#kakao .otr-kakao-row').forEach(row=>{
+  const match=(row.getAttribute('onclick')||'').match(/openOtherChat\('([^']+)'\)/);
+  if(!match)return;
+  const badge=row.querySelector('.otr-kakao-right b');
+  if(badge)badge.style.display=read[match[1]]?'none':'';
+ });
+ const removed=Object.keys(initial).reduce((sum,id)=>sum+(read[id]?initial[id]:0),0);
+ const remaining=Math.max(0,48-removed);
+ document.querySelectorAll('#home .otr-unread').forEach(el=>{
+  el.textContent=remaining;
+  el.style.setProperty('display',remaining?'flex':'none','important');
+ });
+}
+const previous=window.openOtherChat;
+window.openOtherChat=function(id){
+ if(initial[id]&&!read[id]){read[id]=true;try{localStorage.setItem(KEY,JSON.stringify(read))}catch(e){}}
+ previous(id);refresh();
+};
+refresh();
+})();
 </script></body></html>
