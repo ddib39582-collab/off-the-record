@@ -406,14 +406,14 @@ saved.forEach(item=>{if(Array.isArray(item)&&item.length>=2)render(item[0],item[
  // The scripted route stays on screen, while the input stays visible at all times.
  let pending=false;
  function response(t){
-   if(/보고\s*싶|그리워/.test(t))return '나도 보고 싶어. 지금 보러 갈까?';
-   if(/사랑해|사랑한다|사랑/.test(t))return '나도 사랑해 형';
-   if(/만나|보러\s*갈/.test(t))return '지금 보러 갈까? ㅋㅋ';
-   if(/잘\s*자/.test(t))return '형도 잘 자';
-   if(/밥|먹었/.test(t))return '뭐 먹었는데?';
-   if(/기사|열애|소문/.test(t))return '그 얘기 또 나왔어? 형 괜찮아?';
-   if(/전화|통화/.test(t))return '아까 목소리 들었잖아 ㅋㅋ';
-   return ['ㅋㅋㅋㅋ 형 왜','응 나 듣고 있어','아 진짜? ㅋㅋ','형 지금 뭐해'][Math.floor(Math.random()*4)];
+   const normalized=String(t).replace(/\s+/g,'').toLowerCase();
+   const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+   // 전화 후 자유 입력: 사용자가 지정한 두 종류의 대사만 자동 응답합니다.
+   if(/보고싶|보고파|보고싶다|그리워|그립다|그립네|보고싶네/.test(normalized))
+     return pick(['나도!!','지금? 보러 갈까??']);
+   if(/사랑해|사랑한다|사랑함|사랑하지|사랑스럽|좋아해|좋아한다|좋아함|많이좋아/.test(normalized))
+     return pick(['나도 사랑해 형','내가 더 사랑해']);
+   return null;
  }
  window.otrSendFreeChat=function(ev){
   if(ev)ev.preventDefault();
@@ -424,9 +424,9 @@ saved.forEach(item=>{if(Array.isArray(item)&&item.length>=2)render(item[0],item[
   try{const a=JSON.parse(localStorage.getItem('otrFreeChatLog')||'[]');a.push(['j',t]);localStorage.setItem('otrFreeChatLog',JSON.stringify(a.slice(-100)))}catch(e){}
   pending=true;
   setTimeout(()=>{
-   showTyping();
+   if(response(t)!==null)showTyping();
    setTimeout(()=>{
-    hideTyping();const answer=response(t);msg('d',answer);bottom();pending=false;
+    hideTyping();const answer=response(t);if(answer!==null){msg('d',answer);bottom();}pending=false;
     try{const a=JSON.parse(localStorage.getItem('otrFreeChatLog')||'[]');a.push(['d',answer]);localStorage.setItem('otrFreeChatLog',JSON.stringify(a.slice(-100)))}catch(e){}
     if(typeof otrScheduleIdle==='function'&&document.querySelector('#otrScriptChoices .choice'))otrScheduleIdle();
    },1100+Math.min(t.length*45,900));
