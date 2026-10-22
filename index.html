@@ -26,6 +26,7 @@
 .otr-me-typing{justify-content:flex-end}
 .otr-me-typing .bubble{background:#fee500;display:flex;gap:5px;align-items:center;min-width:60px;min-height:36px}
 .otr-me-typing .typing-dot{background:#9b8519}
+.otr-type-cursor{display:inline-block;margin-left:1px;animation:otrCursorBlink .7s step-end infinite;font-weight:400}@keyframes otrCursorBlink{50%{opacity:0}}
 </style><style>.ig-user-link{border:0;background:transparent;padding:0;color:#185ca7;font-weight:700;text-decoration:none;font-size:inherit}.ig-user-link:active{text-decoration:underline}.ig-profile{display:flex;gap:18px;align-items:center;padding:20px 18px 8px}.ig-avatar{width:83px;height:83px;border-radius:50%;background:linear-gradient(130deg,#b9bdc8,#ded6d4);display:grid;place-items:center;font-size:36px;flex-shrink:0;border:3px solid #e5c0c8}.ig-stats{display:flex;gap:15px;font-size:12px;margin-top:9px}.ig-bio{padding:8px 18px 15px;font-size:13px;line-height:1.7}.ig-highlights{display:flex;gap:18px;padding:6px 18px 18px;border-bottom:1px solid #eee}.ig-highlights span{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f2f2f4;border:1px solid #ddd;width:68px;height:68px;border-radius:50%;font-size:23px}.ig-highlights small{font-size:9px;margin-top:3px}.ig-tabs{text-align:center;font-size:13px;padding:13px;border-bottom:1px solid #eee}.ig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}.ig-grid button{border:0;background:#ddd;aspect-ratio:1;font-size:40px}.ig-grid button:nth-child(3n+2){background:#c6cbd6}.ig-grid button:nth-child(3n){background:#ded2d4}.ig-note{text-align:center;color:#999;font-size:11px;padding:15px}.ig-posthead{display:flex;gap:10px;align-items:center;padding:12px 15px;font-size:13px}.ig-mini{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#e4e1e8}.ig-bigphoto{aspect-ratio:1;background:linear-gradient(145deg,#b1b7c5,#e9d8d3);display:grid;place-items:center;font-size:100px}.ig-actions{padding:13px 15px 3px;font-size:23px;display:flex;gap:15px}.ig-caption{padding:8px 15px;font-size:13px;line-height:1.65}.ig-comments{padding:0 15px 25px}.ig-comment{padding:10px 0;border-bottom:1px solid #f1f1f1;font-size:13px;line-height:1.55}.ig-comment small{display:block;color:#999;margin-top:4px;font-size:11px}.ig-official{color:#3286d6;font-size:11px}.ig-summary{background:#fff4f4;color:#ab424e;padding:10px 15px;font-size:12px}.ig-dohoon{background:#f3f7ff;border-radius:9px;padding:10px;margin:5px 0}.ig-comment-title{font-weight:700;font-size:15px;padding:14px 0 3px}</style><style>
 #bubble.bubblepage{background:#b8c8d7}#bubble .bar{background:#b8c8d7;border-bottom:1px solid #98adbd}
 .jh-chat-scroll{padding:12px 12px 22px;background:#b8c8d7;overscroll-behavior:contain}
@@ -149,20 +150,27 @@ function otrScheduleIdle(){
   setTimeout(()=>{hideTyping();msg('d','왜 읽고 답장 안 해?');bottom()},1100);
  },120000);
 }
-function otrActWithTyping(action){
+function otrActWithTyping(action, text){
  if(otrChoiceTyping||replyBusy)return;
  otrResetIdle();otrChoiceTyping=true;
  const row=document.createElement('div');row.className='msgrow me otr-me-typing';
- const b=document.createElement('div');b.className='bubble';b.innerHTML='<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
- row.appendChild(b);M.appendChild(row);bottom();
- setTimeout(()=>{row.remove();otrChoiceTyping=false;action()},850+Math.floor(Math.random()*600));
+ const bubble=document.createElement('div');bubble.className='bubble otr-live-type';
+ const typed=document.createElement('span');typed.className='otr-typed-text';
+ const cursor=document.createElement('span');cursor.className='otr-type-cursor';cursor.textContent='|';
+ bubble.append(typed,cursor);row.appendChild(bubble);M.appendChild(row);bottom();
+ const letters=Array.from(text||'');let pos=0;
+ function tick(){
+  if(pos<letters.length){typed.textContent+=letters[pos++];bottom();setTimeout(tick,65+Math.floor(Math.random()*75));}
+  else setTimeout(()=>{row.remove();otrChoiceTyping=false;action()},250);
+ }
+ setTimeout(tick,200);
 }
 function showChoices(items){
  const area=document.getElementById('otrScriptChoices');
  area.innerHTML='';otrResetIdle();
  if(!items||!items.length)return;
  const hint=document.createElement('div');hint.className='hint';hint.textContent='정환의 답장을 선택하세요';area.appendChild(hint);
- items.forEach(item=>{const btn=document.createElement('button');btn.type='button';btn.className='choice';btn.textContent=item.label;btn.onclick=()=>{if(otrChoiceTyping||replyBusy)return;area.innerHTML='';otrActWithTyping(item.action)};area.appendChild(btn)});
+ items.forEach(item=>{const btn=document.createElement('button');btn.type='button';btn.className='choice';btn.textContent=item.label;btn.onclick=()=>{if(otrChoiceTyping||replyBusy)return;area.innerHTML='';otrActWithTyping(item.action,item.label)};area.appendChild(btn)});
  otrScheduleIdle();
 }function init(){M.innerHTML='';history.forEach(([date,lines])=>{day(date);lines.forEach(([w,t])=>msg(w,t))});stage=0;showChoices(branches.map((x,i)=>({label:x.reply,action:()=>firstChoice(i)})));let n=document.createElement('div');n.className='chat-note';n.textContent='지난 대화는 위로 스크롤해서 볼 수 있어요';M.prepend(n);}let replyBusy=false,replyToken=0,typingNode=null;
 function hideTyping(){if(typingNode){typingNode.remove();typingNode=null}}
